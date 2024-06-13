@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\appointments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Appointments;
+use App\Models\User;
+
 
 class AppointmentsController extends Controller
 {
@@ -15,9 +17,29 @@ class AppointmentsController extends Controller
      */
     public function index()
     {
-        //
-  
+        //retrieve all appointments from the user
+        // $appointment = appointments::where('user_id', Auth::guard('sanctum')->user()->id)->get();
+        // $appointment = appointments::where('user_id', Auth::user()->id)->get();
+      $appointment = appointments::where('user_id', Auth::guard('sanctum')->user()->id)->get();
+
+        $doctor = User::where('type', 'doctor')->get();
+
+        //sorting appointment and doctor details
+        //and get all related appointment
+        foreach($appointment as $data){
+            foreach($doctor as $info){
+                $details = $info->doctor;
+                if($data['doc_id'] == $info['id']){
+                    $data['doctor_name'] = $info['name'];
+                    $data['doctor_profile'] = $info['profile_photo_url']; //typo error found
+                    $data['category'] = $details['category'];
+                }
+            }
+        }
+
+        return $appointment;
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -38,8 +60,8 @@ class AppointmentsController extends Controller
     public function store(Request $request)
     {
         //this controller is to store booking details post from mobile app
-        $appointment = new Appointments();
-        $appointment->user_id = Auth::user()->id;
+        $appointment = new appointments();
+        $appointment->user_id = Auth::guard('sanctum')->user()->id;
         $appointment->doc_id = $request->get('doctor_id');
         $appointment->date = $request->get('date');
         $appointment->day = $request->get('day');

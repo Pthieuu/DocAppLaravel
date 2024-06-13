@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Appointments;
 
 
 class UserController extends Controller
@@ -30,6 +31,10 @@ class UserController extends Controller
         $doctor = User::where('type', 'doctor')->get();
         $doctorData = Doctor::all();
 
+        //trả về lịch hẹn cùng với dữ liệu người dùng
+        $date = now()->format('n/j/Y');
+        $appointment = appointments::where('status', 'upcoming')->where('date', $date)->first();
+        
         //Collect user data and doctor Details
         foreach($doctorData as $data){
             //sorting doctor name and doctor details
@@ -37,6 +42,9 @@ class UserController extends Controller
                 if($data['doc_id'] == $info['id']){
                     $data['doctor_name'] = $info['name'];
                     $data['doctor_profile'] = $info['profile_photo_url'];
+                    if(isset($appointment) && $appointment['doc_id'] == $info['id']){
+                        $data['appointments'] = $appointment;
+                    }
                 }
             }
         }
